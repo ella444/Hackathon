@@ -1,5 +1,5 @@
 from matplotlib.pyplot import figure, show
-import numpy
+import numpy as np
 
 zoom_args = {}
 
@@ -33,7 +33,7 @@ class ZoomPan:
             else:
                 # deal with something that should never happen
                 scale_factor = 1
-                print (event.button)
+                # print (event.button)
 
             new_width = (cur_xlim[1] - cur_xlim[0]) * scale_factor
             new_height = (cur_ylim[1] - cur_ylim[0]) * scale_factor
@@ -43,7 +43,8 @@ class ZoomPan:
 
             ax.set_xlim([xdata - new_width * (1-relx), xdata + new_width * (relx)])
             # ax.set_ylim([ydata - new_height * (1-rely), ydata + new_height * (rely)])
-            zoom_args['axis'] = [xdata - new_width * (1 - relx), xdata + new_width * (relx)]
+            zoom_args['axis'] = [int(xdata - new_width * (1 - relx)), int(xdata + new_width * (relx))]
+            zoom_args['zoom_event'] = True
 
             ax.figure.canvas.draw()
 
@@ -73,7 +74,8 @@ class ZoomPan:
             self.cur_ylim -= dy
             ax.set_xlim(self.cur_xlim)
             ax.set_ylim(self.cur_ylim)
-
+            zoom_args['axis'] = self.cur_xlim.astype(np.int)
+            zoom_args['zoom_event'] = True
             ax.figure.canvas.draw()
 
         fig = ax.get_figure() # get the figure of interest
@@ -94,7 +96,7 @@ if __name__ == '__main__':
     ax = fig.add_subplot(111, xlim=(0,1), ylim=(0,1), autoscale_on=False)
 
     ax.set_title('Click to zoom')
-    x,y,s,c = numpy.random.rand(4,200)
+    x,y,s,c = np.random.rand(4,200)
     s *= 200
 
     ax.scatter(x,y,s,c)

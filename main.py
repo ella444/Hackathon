@@ -1,7 +1,12 @@
 import pathlib
 import subprocess
+
+import pandas as pd
+
+from QDG import QDG
 from gui import gui_window, draw_graph
 from utils import Utils
+from zoom import zoom_args
 
 user_args = {}
 midi_exe = 'midi_temp.py'
@@ -11,7 +16,7 @@ def run_gui():
     i = 0
     while True:  # Event Loop
         # sg.TimerStart()
-        event, values = window.Read()#timeout=0)
+        event, values = window.Read(timeout=30)
 
         if event is None or event == 'Exit':
             break
@@ -39,19 +44,13 @@ def run_gui():
             window.find_element("session").update(values=[sess_time for sess_time in user_args['sessions_df']])
         if event == 'session':
             chosen_session = user_args['sessions_df'][values[event]]
+            user_args['chosen_session'] = chosen_session
             draw_graph(canvas, ax, chosen_session)
             window.find_element("play").update(disabled=False)
             # get_stats for df
-            # a = QDG(chosen_session, names)
-            # note_duration = a.extract_note_duration()
-            # for name, value in note_duration.items():
-            #     print('note duration - {}:\n{}'.format(name, value))
-            # press_velocity = a.extract_press_velocity()
-            # for name, value in press_velocity.items():
-            #     print('press velocity - {}:\n{}'.format(name, value)
-            # press_frequency = a.extract_press_frequency()
-            # for name, value in press_frequency.items():
-            #     print('press frequency - {}:\n{}'.format(name, value))
+            stats = QDG(chosen_session)
+            window.find_element("stats").update(stats.to_string())
+
         if event == 'play':
             if window.find_element("play").ButtonText == 'Stop':
                 user_args['midi_pay_pid'].kill()
@@ -60,6 +59,11 @@ def run_gui():
                 user_args['midi_pay_pid'] = subprocess.Popen(f'python {midi_exe}'.split())
                 window.find_element("play").update('Stop')
 
+        if zoom_args.get('zoom_event'):
+            zoom_args['zoom_event'] = False
+            xmin, xmax = zoom_args.get('axis', [0, user_args['chosen_session'].shape[0]])
+            stats = QDG(pd.DataFrame(user_args['chosen_session'][max(0, xmin):min(xmax, user_args['chosen_session'].shape[0])]))
+            window.find_element("stats").update(stats.to_string())
 
         # sg.TimerStop()
     window.Close()

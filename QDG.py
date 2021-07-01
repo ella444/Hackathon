@@ -59,17 +59,40 @@ class QDG():
         events_per_second['std'] = events_agg.iloc[:, 0].std()
         return events_per_second
 
+    def get_stats(self):
+        stats = {}
+        note_duration = self.extract_note_duration()
+        stats['note duration'] = {}
+        for name, value in note_duration.items():
+            if name == 'total':
+                continue
+            stats['note duration'][name] = value
+
+        press_velocity = self.extract_press_velocity()
+        stats['press velocity'] = {}
+        for name, value in press_velocity.items():
+            if name == 'total':
+                continue
+            stats['press velocity'][name] = value
+        press_frequency = self.extract_press_frequency()
+        stats['press frequency'] = {}
+        for name, value in press_frequency.items():
+            stats['press frequency'][name] = value
+
+        return stats
+
+    def to_string(self):
+        stats = self.get_stats()
+        stat_str = ''
+        for stat_name, stats in stats.items():
+            stat_str += f'{stat_name}\n'
+            for stat, val in stats.items():
+                stat_str += f'\t{stat}: {val:.3f}\n'
+        return stat_str
 
 if __name__=='__main__':
     df = Utils.get_plot_data('./data/sub1/28062021.CSV')
-    a = QDG(df)
-    note_duration = a.extract_note_duration()
-    for name,value in note_duration.items():
-        print('note duration - {}:\n{}'.format(name,value))
-    press_velocity = a.extract_press_velocity()
-    for name, value in press_velocity.items():
-        print('press velocity - {}:\n{}'.format(name, value))
-    press_frequency = a.extract_press_frequency()
-    for name, value in press_frequency.items():
-        print('press frequency - {}:\n{}'.format(name, value))
+    stats = QDG(df)
+    print(stats.to_string())
+
 

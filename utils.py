@@ -1,6 +1,6 @@
 import pathlib
 import pandas as pd
-
+from datetime import datetime
 
 class Utils:
     header_names = ['date', 'time', 'action', 'channel', 'note', 'velocity']
@@ -18,7 +18,15 @@ class Utils:
     @staticmethod
     def get_sessions(df, time_const_min=30):
         # split df into section by time diff
-        return [df]
+        df['timestamp'] = df.datetime.apply(lambda x: datetime.timestamp(x))
+        session_end_indexes = list(df[df['timestamp'].diff() > time_const_min].index)
+        sessions = []
+        prev_index = 0
+        for index in session_end_indexes:
+            sess = df.iloc[prev_index:index]
+            prev_index = index
+            sessions.append(sess.reset_index())
+        return sessions
 
     @staticmethod
     def get_plot_data(path):
