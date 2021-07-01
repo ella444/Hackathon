@@ -45,8 +45,8 @@ def csv_to_midi(csvdata):
     mymidi.addTempo(track, time, tempo)
 
     for index, row in midi_data.iterrows():
-        note = row['note']
-        volume = row['velocity']
+        note = int(row['note'])
+        volume = int(row['velocity'])
         starttime = row['starttime_utc']
         duration = row['duration']
         mymidi.addNote(track, channel, note, starttime, duration, volume)
@@ -69,9 +69,9 @@ def play_music(midi_file):
         clock.tick(30)
 
 def calculate_duration(csvdata: pd.DataFrame):
-    csvdata, headers = df_convert_time(csvdata)
+    csvdata, headers = Utils.df_convert_time(csvdata)
     csvdata['timestamp'] = csvdata[['datetime']].apply(lambda x: x[0].timestamp(), axis=1)
-    notes_data = pd.DataFrame(np.zeros(shape=[88,5]), index=[np.arange(1,89)], columns=['starttime','starttime_utc','note','duration','velocity'])
+    notes_data = pd.DataFrame(np.zeros(shape=[88,5]), index=[np.arange(21,109)], columns=['starttime','starttime_utc','note','duration','velocity'])
     new_data = pd.DataFrame(columns=['starttime','starttime_utc','note','duration','velocity'])
 
     startsong = csvdata['timestamp'][0]-0.001
@@ -79,13 +79,13 @@ def calculate_duration(csvdata: pd.DataFrame):
     for index, row in csvdata.iterrows():
         note = row['note']
         if row['action'] == 1:
-            if int(notes_data.loc[note,'starttime']) == 0:
+            if int(notes_data.loc[note,'starttime_utc']) == 0:
                 notes_data.loc[note,'starttime'] = row['time']
                 notes_data.loc[note,'starttime_utc'] = row['timestamp']-startsong
                 notes_data.loc[note,'note'] = row['note']
                 notes_data.loc[note,'velocity'] = row['velocity']
         elif row['action'] == 2:
-            if int(notes_data.loc[note,'starttime'] != 0):
+            if int(notes_data.loc[note,'starttime_utc'] != 0):
                 notes_data.loc[note,'duration'] = row['timestamp']-startsong-notes_data.loc[note,'starttime_utc']
                 new_line = notes_data.loc[note]
                 new_data = new_data.append(new_line,ignore_index=True)
