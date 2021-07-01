@@ -1,7 +1,7 @@
 import os.path
 import pathlib
-import subprocess
 from multiprocessing import Process
+import PySimpleGUI as sg
 
 import pandas as pd
 
@@ -58,14 +58,21 @@ def run_gui():
             window.find_element("stats").update(stats.to_string())
         if event == 'play':
             if window.find_element("play").ButtonText == 'Stop':
-                user_args['midi_pay_pid'].terminate()
+                user_args['midi_play_pid'].terminate()
+                del user_args['midi_play_pid']
                 window.find_element("play").update('Play')
             else:
                 df = get_chosen_data()
-                user_args['midi_pay_pid'] = Process(target=main_playmidi, args=(df,))
-                user_args['midi_pay_pid'].start()
+                user_args['midi_play_pid'] = Process(target=main_playmidi, args=(df,))
+                user_args['midi_play_pid'].start()
                 window.find_element("play").update('Stop')
-
+        
+        
+        if user_args.get('midi_play_pid') and not user_args.get('midi_play_pid').is_alive():
+            sg.popup_ok('Something went wrong while trying to play this section. Try playing a smaller range of data.')
+            window.find_element("play").update('Play')
+            del user_args['midi_play_pid']
+        
         if event == 'export':
             df = get_chosen_data()
             if not os.path.isdir('sessions'):
