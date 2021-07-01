@@ -1,73 +1,67 @@
-import pathlib
-import PySimpleGUIQt as sg
-from utils import Utils
+import matplotlib.pyplot as plt
 
-user_args = {}
+import PySimpleGUI as sg
+import matplotlib
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+matplotlib.use('TkAgg')
+
+from zoom import ZoomPan, zoom_args
+
+
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
 
 def gui_window():
     sg.ChangeLookAndFeel('GreenTan')
 
-    dir_names = Utils.get_dirs(".\data")
-
     frame1 =    [
-        [sg.Input('Input Text', do_not_clear=True, size=(250, 35), tooltip='Input', key="main_dir",enable_events=True), sg.FolderBrowse(), sg.Stretch()],
-        [sg.Combo([''], size=(200,35), key='subject', disabled=True, enable_events=True),
-        sg.Combo([''], size=(200, 35), key='day', disabled=True, enable_events=True),
-        sg.Combo([''], size=(200, 35), key='session', disabled=True, enable_events=True)]
+        [sg.Input('Browse Subject Directory', do_not_clear=True, size=(57, 20), tooltip='Input', key="main_dir",enable_events=True), sg.FolderBrowse()],
+        [sg.Combo([''], default_value='subject', size=(20,35), key='subject', disabled=True, enable_events=True),
+        sg.Combo([''], default_value='day', size=(20, 35), key='day', disabled=True, enable_events=True),
+        sg.Combo([''], default_value='session', size=(20, 35), key='session', disabled=True, enable_events=True)]
                 ]
+
+    fig = matplotlib.figure.Figure(figsize=(15, 8), dpi=100)
+
+    ax = fig.add_subplot(111)
+    # t = np.arange(0, 3, .01)
+    # ax.plot(t, 2 * np.sin(2 * np.pi * t))
+
 
 
     frame2 =    [
-
+        [sg.Canvas(key='-CANVAS-')]
                 ]
+    # stats frame
+    frame3 = [
+        [sg.Text('', size=(20, 20), key='stats')],
+    ]
 
     layout = [
         [sg.Frame('Select Session:', frame1, title_color='green')],
-        [sg.Frame('', frame2, title_color='red'), ],
-        [sg.Button('Button'), sg.Button('Exit')],
+        [sg.Frame('', frame2, title_color='black'), sg.Frame('Stats:', frame3, title_color='black')],
+        [sg.Button('Play', key='play', disabled=False, enable_events=True), sg.Button('Exit')],
              ]
 
+    window = sg.Window('Demo Application - Embedding Matplotlib In PySimpleGUI', layout, finalize=True,
+                       element_justification='center', font='Helvetica 18')
+    window.Maximize()
 
-    window = sg.Window('Window Title',
-                       font=('Helvetica', 13),
-                       default_button_element_size=(100,30),
-                       auto_size_buttons=False,
-                       default_element_size=(200,22)
-                       ).Layout(layout).Finalize()
-    return window
+    fig_canvas_agg = draw_figure(window.find_element('-CANVAS-').TKCanvas, fig)
 
-def run_gui():
-    window = gui_window()
-    i = 0
-    while True:  # Event Loop
-        # sg.TimerStart()
-        event, values = window.Read()#timeout=0)
+    return window, ax, fig_canvas_agg
 
-        if event is None or event == 'Exit':
-            break
-        if event == 'Button':
-            print(event, values)
-        if event == 'main_dir':
-            user_args[event] = values[event]
-            dir_names = Utils.get_dirs(values[event])
-            window.find_element("subject").update(disabled=False)
-            window.find_element("subject").update(values=dir_names)
-        if event == 'subject':
-            user_args[event] = values[event]
-            path = pathlib.PurePath(user_args['main_dir'], values[event])
-            file_names = Utils.get_files(path)
-            window.find_element("day").update(disabled=False)
-            window.find_element("day").update(values=file_names)
-        if event == 'day':
-            user_args[event] = values[event]
-            selected_file = pathlib.PurePath(user_args['main_dir'], user_args['subject'], values[event])
-            sessions = Utils.get_session(selected_file)
-            window.find_element("session").update(disabled=False)
-            window.find_element("session").update(values=sessions)
+def draw_graph(canvas, ax, df):
+    t = df.time
+    ax.cla()
+    ax.scatter(t, df.note)
+    ax.set_xticks(t[0:-1:int(len(t)/10)])
+    zp = ZoomPan()
+    figZoom = zp.zoom_factory(ax, base_scale=1.1)
+    figPan = zp.pan_factory(ax)
+    canvas.draw()
 
-        # sg.TimerStop()
-    window.Close()
-
-
-if __name__ == '__main__':
-    run_gui()
