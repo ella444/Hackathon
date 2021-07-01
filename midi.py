@@ -1,8 +1,9 @@
 import pygame
-import py_midicsv as pm
 import pandas as pd
+import numpy as np
 from midiutil.MidiFile import MIDIFile
-import json
+import utils
+
 
 def main_playmidi(csv_midi: pd.DataFrame):
   midi_file = csv_to_midi(csv_midi)
@@ -31,7 +32,10 @@ def main_playmidi(csv_midi: pd.DataFrame):
 
 def csv_to_midi(csvdata):
 
-    trials = csvdata['trials']
+    csvdata = utils.df_convert_time(csvdata)
+    csvdata['timestamp'] = csvdata[['datetime']].apply(lambda x: x[0].timestamp(), axis=1)
+
+    notes_duration = pd.DataFrame(np.zeros(shape=[96,3]), index=[np.arange(1,97)], columns=['starttime','duration','velocity'])
 
     track = 0
     channel = 0
@@ -42,18 +46,22 @@ def csv_to_midi(csvdata):
     # automatically)
     mymidi.addTempo(track, time, tempo)
 
-    for trial in trials:
-        notes = trial.find("notes").text
-        notesArray = json.loads(notes)
-        startsongtime = notesArray[0][2]
-        for m in notesArray:
-            note = m[0]
-            volume = m[1]
-            starttime = m[2] - startsongtime
-            endtime = m[3] - startsongtime
-            duration = endtime - starttime
-            mymidi.addNote(track, channel, note, starttime, duration, volume)
+    startsong = csvdata['timestamp'][0]
+    nullify = pd.DataFrame(np.zeros(shape = [1,3]))
 
+    for index, row in csvdata.iterrows():
+        note = row['note']
+        if row['action'] == 1 and notes_duration[note,0] == 0:
+            notes_duration[note,'starttime'] = row['timestamp']-startsong
+            notes_duration[note,'velocity'] = row['velocity']
+        elif row['action'] == 2 and notes_duration[note,0] != 0:
+            notes_duration[note,'duration'] = row['timestamp']-startsong-notes_duration[note,'starttime']
+            volume = notes_duration[note,'velocity']
+            starttime = notes_duration[note,'starttime']
+            duration = notes_duration[note,'duration']
+            mymidi.addNote(track, channel, note, starttime, duration, volume)
+            notes_duration[note] = nullify
+    
     return mymidi
 
 ''''''
