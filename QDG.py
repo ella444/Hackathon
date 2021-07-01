@@ -1,29 +1,23 @@
 import pandas as pd
 import numpy as np
 
-
+from utils import Utils
 
 
 class QDG():
-    def __init__(self,midi_sample : pd.DataFrame ,header_names : list):
+    def __init__(self,midi_sample : pd.DataFrame, header_names : list):
         assert isinstance(midi_sample, pd.DataFrame)
         assert len(header_names) == 6
-        self.midi_sample = midi_sample
-        self.date_format = "%d/%m/%Y"
-        self.time_format = "%H:%M:%S.%f"
-        self.datetime_format = self.date_format + ' ' + self.time_format
-        self.header_names = header_names
-        self.midi_sample['datetime'] = midi_sample[header_names[0]] + ' ' + midi_sample[header_names[1]]
-        self.midi_sample['datetime'] = pd.to_datetime(self.midi_sample['datetime'],format=self.datetime_format)
-        self.header_names.append('datetime')
+
+        self.midi_sample, self.header_names = Utils.df_convert_time(header_names, midi_sample)
 
     def extract_note_duration(self):
-        note_duration = {'total':[]}
+        note_duration = {'total': []}
         for index, row in self.midi_sample.iterrows():
-            if getattr(row,self.header_names[2]) != 1:
+            if getattr(row, self.header_names[2]) != 1:
                 continue
-            row_key = getattr(row,self.header_names[4])
-            press_time = getattr(row,self.header_names[6])
+            row_key = getattr(row, self.header_names[4])
+            press_time = getattr(row, self.header_names[6])
             counter = 0
             while True:
                 counter += 1
@@ -34,7 +28,7 @@ class QDG():
                     break
                 next_row_event = getattr(next_row,self.header_names[2])
                 next_row_key = getattr(next_row,self.header_names[4])
-                if (next_row_event == 2 and next_row_key == row_key):
+                if next_row_event == 2 and next_row_key == row_key:
                     release_time = getattr(next_row,self.header_names[6])
                     break
             if release_time is None:
@@ -62,13 +56,14 @@ class QDG():
         events_per_second = {}
         midi_sample = self.midi_sample[self.midi_sample[self.header_names[2]] == 1]
         events_agg = midi_sample.groupby(pd.Grouper(key='datetime', freq='S')).count()
-        events_per_second['mean'] = events_agg.iloc[:,0].mean()
-        events_per_second['std'] = events_agg.iloc[:,0].std()
+        events_per_second['mean'] = events_agg.iloc[:, 0].mean()
+        events_per_second['std'] = events_agg.iloc[:, 0].std()
         return events_per_second
 
+
 if __name__=='__main__':
-    inp = pd.read_csv('data/28062021.CSV', names=['date', 'time', 'type', 'nan', 'key', 'velocity'])
-    names = ['date','time','type','nan','key','velocity']
+    inp = pd.read_csv('./data/sub1/28062021.CSV', names=['date', 'time', 'action', 'channel', 'note', 'velocity'])
+    names = ['date', 'time', 'action', 'channel', 'note', 'velocity']
     a = QDG(inp,names)
     note_duration = a.extract_note_duration()
     for name,value in note_duration.items():
