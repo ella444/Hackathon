@@ -50,7 +50,7 @@ def gui_window():
         [sg.Button('Play', key='play', disabled=True, enable_events=True), sg.Button('Export', key='export', enable_events=True, disabled=True), sg.Button('Exit')],
              ]
 
-    window = sg.Window('Demo Application - Embedding Matplotlib In PySimpleGUI', layout, finalize=True,
+    window = sg.Window('Piano Visualization Gui - © Ella, Rotem, Goni, Hackthon 2021', layout, finalize=True,
                        element_justification='center', font='Helvetica 18')
     window.Maximize()
 
