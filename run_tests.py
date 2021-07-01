@@ -6,7 +6,7 @@ from qdg import QDG
 def test_midi_plays():
     csvdata = pd.read_csv('test_data/session_1.csv')
     try:
-        main_playmidi(csvdata)
+        main_playmidi(csvdata[:25])
     except:
         raise Exception('midi.py faild palying midi sample ')
 

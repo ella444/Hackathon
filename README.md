@@ -28,6 +28,7 @@ show statistical measures for the QDG test and play a chosen part, all this in a
 
 - Play Data: use the Play button to convert the data back to midi and play it.
 
+- Test: use pytest to run 'run_test.py'. It tests the statistics calculations and the midi play module.  
 
 #installation and Run
 - In Windows run the 'run.bat' file. it will first install the requirements using pip and then run the Gui.
