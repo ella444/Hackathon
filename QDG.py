@@ -5,11 +5,10 @@ from utils import Utils
 
 
 class QDG():
-    def __init__(self,midi_sample : pd.DataFrame, header_names : list):
+    def __init__(self, midi_sample: pd.DataFrame):
         assert isinstance(midi_sample, pd.DataFrame)
-        assert len(header_names) == 6
 
-        self.midi_sample, self.header_names = Utils.df_convert_time(header_names, midi_sample)
+        self.midi_sample, self.header_names = Utils.df_convert_time(midi_sample)
 
     def extract_note_duration(self):
         note_duration = {'total': []}
@@ -62,9 +61,8 @@ class QDG():
 
 
 if __name__=='__main__':
-    inp = pd.read_csv('./data/sub1/28062021.CSV', names=['date', 'time', 'action', 'channel', 'note', 'velocity'])
-    names = ['date', 'time', 'action', 'channel', 'note', 'velocity']
-    a = QDG(inp,names)
+    df = Utils.get_plot_data('./data/sub1/28062021.CSV')
+    a = QDG(df)
     note_duration = a.extract_note_duration()
     for name,value in note_duration.items():
         print('note duration - {}:\n{}'.format(name,value))

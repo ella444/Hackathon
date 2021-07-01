@@ -1,9 +1,9 @@
 import pathlib
 import pandas as pd
-from datetime import datetime
 
 
 class Utils:
+    header_names = ['date', 'time', 'action', 'channel', 'note', 'velocity']
 
     @staticmethod
     def get_dirs(path):
@@ -22,18 +22,16 @@ class Utils:
 
     @staticmethod
     def get_plot_data(path):
-        header_names = ['date', 'time', 'action', 'channel', 'note', 'velocity']
-        midi_sample = pd.read_csv(path, names=header_names)
-
-        midi_sample_with_datetime, _ = Utils.df_convert_time(header_names, midi_sample)
+        midi_sample = pd.read_csv(path, names=Utils.header_names)
+        midi_sample_with_datetime, _ = Utils.df_convert_time(midi_sample)
         return midi_sample_with_datetime
 
     @staticmethod
-    def df_convert_time(header_names, midi_sample):
+    def df_convert_time(midi_sample):
         date_format = "%d/%m/%Y"
         time_format = "%H:%M:%S.%f"
         datetime_format = date_format + ' ' + time_format
-        header_names = header_names
+        header_names = Utils.header_names
         midi_sample['datetime'] = midi_sample[header_names[0]] + ' ' + midi_sample[header_names[1]]
         midi_sample['datetime'] = pd.to_datetime(midi_sample['datetime'], format=datetime_format)
         header_names.append('datetime')

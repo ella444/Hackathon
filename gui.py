@@ -37,14 +37,21 @@ def gui_window():
         [sg.Canvas(key='-CANVAS-')]
                 ]
     # stats frame
-    # frame3 = [
-    #     [sg.Input('Stats', do_not_clear=True, size=(5, 20), key="stats",enable_events=True)]
-    # ]
+    frame3 = [
+        [sg.Text('note-mean', size=(20, 20))],
+        # [sg.Text('note-std', size=(20, 20))],
+        # [sg.Text('note-cv', size=(20, 20))],
+        # [sg.Text('press-vel-mean', size=(20, 20))],
+        # [sg.Text('press-vel-std', size=(20, 20))],
+        # [sg.Text('press-vel-cv', size=(20, 20))],
+        # [sg.Text('press-freq-mean', size=(20, 20))],
+        # [sg.Text('press-freq-std', size=(20, 20))]
+    ]
 
     layout = [
         [sg.Frame('Select Session:', frame1, title_color='green')],
-        [sg.Frame('', frame2, title_color='red'), ], #sg.Frame('', frame3, title_color='red')
-        [sg.Button('Button'), sg.Button('Exit')],
+        [sg.Frame('', frame2, title_color='red'), sg.Frame('Stats:', frame3, title_color='red')],
+        [sg.Button('Play', key='play', disabled=False, enable_events=True), sg.Button('Exit')],
              ]
 
     window = sg.Window('Demo Application - Embedding Matplotlib In PySimpleGUI', layout, finalize=True,

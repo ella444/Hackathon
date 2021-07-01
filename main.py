@@ -1,11 +1,10 @@
 import pathlib
-
-from QDG import QDG
+import subprocess
 from gui import gui_window, draw_graph
 from utils import Utils
 
 user_args = {}
-
+midi_exe = 'midi_temp.py'
 
 def run_gui():
     window, ax, canvas = gui_window()
@@ -41,6 +40,7 @@ def run_gui():
         if event == 'session':
             chosen_session = user_args['sessions_df'][values[event]]
             draw_graph(canvas, ax, chosen_session)
+            window.find_element("play").update(disabled=False)
             # get_stats for df
             # a = QDG(chosen_session, names)
             # note_duration = a.extract_note_duration()
@@ -48,10 +48,18 @@ def run_gui():
             #     print('note duration - {}:\n{}'.format(name, value))
             # press_velocity = a.extract_press_velocity()
             # for name, value in press_velocity.items():
-            #     print('press velocity - {}:\n{}'.format(name, value))
+            #     print('press velocity - {}:\n{}'.format(name, value)
             # press_frequency = a.extract_press_frequency()
             # for name, value in press_frequency.items():
             #     print('press frequency - {}:\n{}'.format(name, value))
+        if event == 'play':
+            if window.find_element("play").ButtonText == 'Stop':
+                user_args['midi_pay_pid'].kill()
+                window.find_element("play").update('Play')
+            else:
+                user_args['midi_pay_pid'] = subprocess.Popen(f'python {midi_exe}'.split())
+                window.find_element("play").update('Stop')
+
 
         # sg.TimerStop()
     window.Close()
