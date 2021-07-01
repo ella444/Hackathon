@@ -1,14 +1,22 @@
 from datetime import datetime
-
 import pygame
 import pandas as pd
 import numpy as np
 from midiutil.MidiFile import MIDIFile
+
 from utils import Utils
 
 
 def main_playmidi(csv_midi: pd.DataFrame):
-    midi_file = csv_to_midi(csv_midi)
+    '''
+        the main function that calls different functions that convert
+        the quantitive data back to midi and plays it.
+
+        parameters: dataframe of the quantitive data
+        output: playing the midi file
+        '''
+    csv_to_midi(csv_midi)
+    midi_file = 'midifile.mid'
 
     freq = 44100  # audio CD quality
     bitsize = -16  # unsigned 16 bit
@@ -16,7 +24,6 @@ def main_playmidi(csv_midi: pd.DataFrame):
     buffer = 1024  # number of samples
     pygame.mixer.init(freq, bitsize, channels, buffer)
 
-    # volume (0 to 1.0)
     pygame.mixer.music.set_volume(0.8)
 
     # listen for interruptions
@@ -31,15 +38,15 @@ def main_playmidi(csv_midi: pd.DataFrame):
         raise SystemExit
 
 
-''''''
-
-
 def csv_to_midi(csvdata):
-    # csvdata, headers = Utils.df_convert_time(csvdata)
-    # csvdata['timestamp'] = csvdata[['datetime']].apply(lambda x: datetime.timestamp, axis=1)
-
-    notes_data = pd.DataFrame(np.zeros(shape=[96, 3]), index=[np.arange(1, 97)],
-                              columns=['starttime', 'duration', 'velocity'])
+    '''
+        converts the data from the csv file into a midi file.
+        checks the time, duration and sound volume (velocity) of each note
+        and generates a new midi file containing this information
+            parameters: dataframe of the quantitive data
+            returns: a midi file
+        '''
+    midi_data = calculate_duration(csvdata)
 
     track = 0
     channel = 0
@@ -50,32 +57,21 @@ def csv_to_midi(csvdata):
     # automatically)
     mymidi.addTempo(track, time, tempo)
 
-    startsong = csvdata['timestamp'].iloc[0] - 0.001
-
-    for index, row in csvdata.iterrows():
-        note = row['note']
-        if row['action'] == 1:
-            if int(notes_data.loc[note, 'starttime']) == 0:
-                notes_data.loc[note, 'starttime'] = row['timestamp'] - startsong
-                notes_data.loc[note, 'velocity'] = row['velocity']
-        elif row['action'] == 2:
-            if int(notes_data.loc[note, 'starttime'] != 0):
-                notes_data.loc[note, 'duration'] = row['timestamp'] - startsong - notes_data.loc[note, 'starttime']
-                volume = int(notes_data.loc[note, 'velocity'])
-                starttime = float(notes_data.loc[note, 'starttime'])
-                duration = float(notes_data.loc[note, 'duration'])
-                mymidi.addNote(track, channel, note, starttime, duration, volume)
-                notes_data.loc[note, :] = np.zeros(shape=(1, 3))
+    for index, row in midi_data.iterrows():
+        note = int(row['note'])
+        volume = int(row['velocity'])
+        starttime = row['starttime_utc']
+        duration = row['duration']
+        mymidi.addNote(track, channel, note, starttime, duration, volume)
 
     with open('midifile.mid', "wb") as output_file:
         mymidi.writeFile(output_file)
-    return 'midifile.mid'
-
-
-''''''
 
 
 def play_music(midi_file):
+    '''
+        loads and plays a midi file, using a package of playing music.
+        '''
     clock = pygame.time.Clock()
     try:
         pygame.mixer.music.load(midi_file)
@@ -88,6 +84,42 @@ def play_music(midi_file):
         # check if playback has finished
         clock.tick(30)
 
+
+def calculate_duration(csvdata: pd.DataFrame):
+    '''
+        allows the rearange the quantitive midi data;
+        in the original file, there are different rows to pressing and releasing the keyboard.
+        this function creates one row of data for each note played including the start time and duration.
+        it also converts the start time to UTC time, which is the only way a midi file can be generated.
+            parameters: dataframe with the original data
+            returns: new dataframe contaning the above-mentioned data.
+        '''
+    notes_data = pd.DataFrame(np.zeros(shape=[88, 5]), index=[np.arange(21, 109)],
+                              columns=['starttime', 'starttime_utc', 'note', 'duration', 'velocity'])
+    new_data = pd.DataFrame(columns=['starttime', 'starttime_utc', 'note', 'duration', 'velocity'])
+
+    startsong = csvdata['timestamp'].iloc[0] - 0.001
+
+    for index, row in csvdata.iterrows():
+        note = row['note']
+        if row['action'] == 1:
+            if int(notes_data.loc[note, 'starttime_utc']) == 0:
+                notes_data.loc[note, 'starttime'] = row['time']
+                notes_data.loc[note, 'starttime_utc'] = row['timestamp'] - startsong
+                notes_data.loc[note, 'note'] = row['note']
+                notes_data.loc[note, 'velocity'] = row['velocity']
+        elif row['action'] == 2:
+            if int(notes_data.loc[note, 'starttime_utc'] != 0):
+                notes_data.loc[note, 'duration'] = row['timestamp'] - startsong - notes_data.loc[note, 'starttime_utc']
+                new_line = notes_data.loc[note]
+                new_data = new_data.append(new_line, ignore_index=True)
+                notes_data.loc[note, :] = np.zeros(shape=(1, 5))
+    new_data = new_data.sort_values('starttime').reindex()
+    return new_data
+
+
 if __name__ == '__main__':
-    csvdata = pd.read_csv('sessions/session_0.csv')
-    main_playmidi(pd.DataFrame(csvdata[50:200]))
+    csvdata = pd.read_csv('test_data/session_1.csv')
+    # csvdata, headers = Utils.df_convert_time(csvdata)
+    # csvdata['timestamp'] = csvdata[['datetime']].apply(lambda x: datetime.timestamp(x), axis=1)
+    main_playmidi(csvdata)
