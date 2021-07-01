@@ -87,4 +87,3 @@ def play_music(midi_file):
 
 
 play_music('output.mid')
-# play_music('FishPolka.mid')

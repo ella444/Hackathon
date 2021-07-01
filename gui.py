@@ -69,6 +69,7 @@ def draw_graph(canvas, ax, df):
     :param df: DataFrame data to plot
     :return: None
     '''
+    df = df[df.action == 1]
     t = df.time
     ax.cla()
     ax.scatter(t, df.note)

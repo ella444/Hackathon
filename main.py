@@ -4,7 +4,7 @@ import subprocess
 
 import pandas as pd
 
-from QDG import QDG
+from qdg import QDG
 from gui import gui_window, draw_graph
 from utils import Utils
 from zoom import zoom_args
@@ -79,7 +79,7 @@ def run_gui():
                     continue
                 break
             with open(out_path, 'w') as outfile:
-                outfile.write(df.to_csv(index=False))
+                outfile.write(df.reset_index().to_csv(index=False))
 
         if zoom_args.get('zoom_event'):
             zoom_args['zoom_event'] = False
