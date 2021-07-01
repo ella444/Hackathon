@@ -1,10 +1,7 @@
-from datetime import datetime
 import pygame
 import pandas as pd
 import numpy as np
 from midiutil.MidiFile import MIDIFile
-
-from utils import Utils
 
 
 def main_playmidi(csv_midi: pd.DataFrame):
@@ -120,6 +117,4 @@ def calculate_duration(csvdata: pd.DataFrame):
 
 if __name__ == '__main__':
     csvdata = pd.read_csv('test_data/session_1.csv')
-    # csvdata, headers = Utils.df_convert_time(csvdata)
-    # csvdata['timestamp'] = csvdata[['datetime']].apply(lambda x: datetime.timestamp(x), axis=1)
     main_playmidi(csvdata)

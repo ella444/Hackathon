@@ -12,7 +12,6 @@ from utils import Utils
 from zoom import zoom_args
 
 user_args = {}
-midi_exe = 'midi_temp.py'
 
 def run_gui():
     '''

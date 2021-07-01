@@ -1,12 +1,9 @@
-import matplotlib.pyplot as plt
-
 import PySimpleGUI as sg
 import matplotlib
-import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 matplotlib.use('TkAgg')
 
-from zoom import ZoomPan, zoom_args
+from zoom import ZoomPan
 
 
 def draw_figure(canvas, figure):
