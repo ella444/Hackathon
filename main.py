@@ -1,3 +1,4 @@
+import os.path
 import pathlib
 import subprocess
 
@@ -49,7 +50,6 @@ def run_gui():
             # get_stats for df
             stats = QDG(chosen_session)
             window.find_element("stats").update(stats.to_string())
-
         if event == 'play':
             if window.find_element("play").ButtonText == 'Stop':
                 user_args['midi_pay_pid'].kill()
@@ -60,6 +60,21 @@ def run_gui():
                 except:
                     user_args['midi_pay_pid'] = subprocess.Popen(f'python3 {midi_exe}'.split())
                 window.find_element("play").update('Stop')
+
+        if event == 'export':
+            xmin, xmax = zoom_args.get('axis', [0, user_args['chosen_session'].shape[0]])
+            df = pd.DataFrame(user_args['chosen_session'][max(0, xmin):min(xmax, user_args['chosen_session'].shape[0])])
+            if not os.path.isdir('sessions'):
+                os.mkdir('sessions')
+            i = 0
+            while True:
+                out_path = f'sessions/session_{i}.csv'
+                if os.path.exists(out_path):
+                    i += 1
+                    continue
+                break
+            with open(out_path, 'w') as outfile:
+                outfile.write(df.to_csv(index=False))
 
         if zoom_args.get('zoom_event'):
             zoom_args['zoom_event'] = False
