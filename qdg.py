@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-
 from utils import Utils
 
 
@@ -51,7 +50,7 @@ class QDG():
                     release_time = getattr(next_row, self.header_names[6])
                     break
             if release_time is None:
-                print("couldn't locate corresponding release event...\nignoring press event")
+                # print("couldn't locate corresponding release event...\nignoring press event")
                 continue
             duration = release_time - press_time
             note_duration['total'].append(duration.total_seconds())
@@ -74,7 +73,7 @@ class QDG():
         for index, row in self.midi_sample.iterrows():
             if getattr(row,self.header_names[2]) != 1:
                 continue
-            press_velocity['total'].append(getattr(row,self.header_names[5]))
+            press_velocity['total'].append(getattr(row, self.header_names[5]))
         press_velocity['mean'] = np.mean(press_velocity['total'])
         press_velocity['std'] = np.std(press_velocity['total'])
         press_velocity['CV'] = press_velocity['std'] / press_velocity['mean']
@@ -145,8 +144,8 @@ class QDG():
         return stat_str
 
 if __name__=='__main__':
-    df = Utils.get_plot_data('./data/sub1/28062021.CSV')
+    df = pd.read_csv('test_data/session_1.csv')
     stats = QDG(df)
-    print(stats.to_string())
+    print(stats.get_stats())
 
 

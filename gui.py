@@ -1,12 +1,9 @@
-import matplotlib.pyplot as plt
-
 import PySimpleGUI as sg
 import matplotlib
-import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 matplotlib.use('TkAgg')
 
-from zoom import ZoomPan, zoom_args
+from zoom import ZoomPan
 
 
 def draw_figure(canvas, figure):
@@ -69,6 +66,7 @@ def draw_graph(canvas, ax, df):
     :param df: DataFrame data to plot
     :return: None
     '''
+    df = df[df.action == 1]
     t = df.time
     ax.cla()
     ax.scatter(t, df.note)

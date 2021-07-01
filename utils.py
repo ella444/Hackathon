@@ -8,11 +8,15 @@ class Utils:
     @staticmethod
     def get_dirs(path):
         p = pathlib.Path(path)
+        if not p.exists():
+            return []
         return [x.name for x in p.iterdir() if x.is_dir()]
 
     @staticmethod
     def get_files(path, suffix='.csv'):
         p = pathlib.Path(path)
+        if not p.exists():
+            return []
         return [x.name for x in p.iterdir() if x.is_file() and x.suffix.lower() == suffix]
 
     @staticmethod
@@ -25,7 +29,7 @@ class Utils:
         '''
         # split df into section by time diff
         df['timestamp'] = df.datetime.apply(lambda x: datetime.timestamp(x))
-        session_end_indexes = list(df[df['timestamp'].diff() > time_const_min * 60].index)
+        session_end_indexes = list(df[df['timestamp'].diff() > time_const_min * 60].index) + [df.shape[0]]
         if not any(session_end_indexes):
             return [df]
         sessions = []

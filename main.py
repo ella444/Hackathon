@@ -1,16 +1,17 @@
 import os.path
 import pathlib
 import subprocess
+from multiprocessing import Process
 
 import pandas as pd
 
-from QDG import QDG
+from midi import main_playmidi
+from qdg import QDG
 from gui import gui_window, draw_graph
 from utils import Utils
 from zoom import zoom_args
 
 user_args = {}
-midi_exe = 'midi_temp.py'
 
 def run_gui():
     '''
@@ -20,7 +21,7 @@ def run_gui():
     window, ax, canvas = gui_window()
     i = 0
     while True:  # Event Loop
-        event, values = window.Read(timeout=30)
+        event, values = window.Read(timeout=20)
 
         if event is None or event == 'Exit':
             break
@@ -57,18 +58,16 @@ def run_gui():
             window.find_element("stats").update(stats.to_string())
         if event == 'play':
             if window.find_element("play").ButtonText == 'Stop':
-                user_args['midi_pay_pid'].kill()
+                user_args['midi_pay_pid'].terminate()
                 window.find_element("play").update('Play')
             else:
-                try:
-                    user_args['midi_pay_pid'] = subprocess.Popen(f'python {midi_exe}'.split())
-                except:
-                    user_args['midi_pay_pid'] = subprocess.Popen(f'python3 {midi_exe}'.split())
+                df = get_chosen_data()
+                user_args['midi_pay_pid'] = Process(target=main_playmidi, args=(df,))
+                user_args['midi_pay_pid'].start()
                 window.find_element("play").update('Stop')
 
         if event == 'export':
-            xmin, xmax = zoom_args.get('axis', [0, user_args['chosen_session'].shape[0]])
-            df = pd.DataFrame(user_args['chosen_session'][max(0, xmin):min(xmax, user_args['chosen_session'].shape[0])])
+            df = get_chosen_data()
             if not os.path.isdir('sessions'):
                 os.mkdir('sessions')
             i = 0
@@ -79,15 +78,25 @@ def run_gui():
                     continue
                 break
             with open(out_path, 'w') as outfile:
-                outfile.write(df.to_csv(index=False))
+                outfile.write(df.reset_index().to_csv(index=False))
 
         if zoom_args.get('zoom_event'):
             zoom_args['zoom_event'] = False
-            xmin, xmax = zoom_args.get('axis', [0, user_args['chosen_session'].shape[0]])
-            stats = QDG(pd.DataFrame(user_args['chosen_session'][max(0, xmin):min(xmax, user_args['chosen_session'].shape[0])]))
+            df = get_chosen_data()
+            stats = QDG(df)
             window.find_element("stats").update(stats.to_string())
 
     window.Close()
+
+
+def get_chosen_data():
+    '''
+    get a slice of the loaded dataframe according to the selected view
+    :return: selected slice of dataframe
+    '''
+    xmin, xmax = zoom_args.get('axis', [0, user_args['chosen_session'].shape[0]])
+    df = pd.DataFrame(user_args['chosen_session'][max(0, xmin):min(xmax, user_args['chosen_session'].shape[0])])
+    return df
 
 
 if __name__ == '__main__':
