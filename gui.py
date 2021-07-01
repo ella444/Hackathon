@@ -10,15 +10,25 @@ from zoom import ZoomPan, zoom_args
 
 
 def draw_figure(canvas, figure):
+    '''
+    draw matplotlib figure on pySimplegui
+    :param canvas: canvas element
+    :param figure: matplotlib figure
+    :return: agg figure
+    '''
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
     figure_canvas_agg.draw()
     figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
     return figure_canvas_agg
 
 def gui_window():
+    '''
+    Gui layout definition
+    :return:
+    '''
     sg.ChangeLookAndFeel('GreenTan')
 
-    frame1 =    [
+    frame1 = [
         [sg.Input('Browse Subject Directory', do_not_clear=True, size=(57, 20), tooltip='Input', key="main_dir",enable_events=True), sg.FolderBrowse()],
         [sg.Combo([''], default_value='subject', size=(20,35), key='subject', disabled=True, enable_events=True),
         sg.Combo([''], default_value='day', size=(20, 35), key='day', disabled=True, enable_events=True),
@@ -28,12 +38,8 @@ def gui_window():
     fig = matplotlib.figure.Figure(figsize=(15, 8), dpi=100)
 
     ax = fig.add_subplot(111)
-    # t = np.arange(0, 3, .01)
-    # ax.plot(t, 2 * np.sin(2 * np.pi * t))
 
-
-
-    frame2 =    [
+    frame2 = [
         [sg.Canvas(key='-CANVAS-')]
                 ]
     # stats frame
@@ -44,7 +50,7 @@ def gui_window():
     layout = [
         [sg.Frame('Select Session:', frame1, title_color='green')],
         [sg.Frame('', frame2, title_color='black'), sg.Frame('Stats:', frame3, title_color='black')],
-        [sg.Button('Play', key='play', disabled=False, enable_events=True), sg.Button('Exit')],
+        [sg.Button('Play', key='play', disabled=True, enable_events=True), sg.Button('Export', key='export', enable_events=True, disabled=True), sg.Button('Exit')],
              ]
 
     window = sg.Window('Demo Application - Embedding Matplotlib In PySimpleGUI', layout, finalize=True,
@@ -56,6 +62,13 @@ def gui_window():
     return window, ax, fig_canvas_agg
 
 def draw_graph(canvas, ax, df):
+    '''
+    update graph with new data according to interactive gui
+    :param canvas: canvas element in gui
+    :param ax: axis object of matplotlib
+    :param df: DataFrame data to plot
+    :return: None
+    '''
     t = df.time
     ax.cla()
     ax.scatter(t, df.note)

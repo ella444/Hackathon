@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pygame
 import pandas as pd
 import numpy as np
@@ -16,8 +18,8 @@ def main_playmidi(csv_midi: pd.DataFrame):
     buffer = 1024   # number of samples
     pygame.mixer.init(freq, bitsize, channels, buffer)
 
-    # volume (0 to 1.0)
-    pygame.mixer.music.set_volume(0.8)
+
+    pygame.mixer.music.set_volume(0.4)
 
     # listen for interruptions
     try:
@@ -53,7 +55,7 @@ def csv_to_midi(csvdata):
     
     with open('midifile.mid', "wb") as output_file:
         mymidi.writeFile(output_file)
-    
+
 
 def play_music(midi_file):
     clock = pygame.time.Clock()
@@ -92,3 +94,7 @@ def calculate_duration(csvdata: pd.DataFrame):
                 notes_data.loc[note,:] = np.zeros(shape=(1,5))
     new_data = new_data.sort_values('starttime').reindex()
     return new_data
+
+  if __name__ == '__main__':
+    csvdata = pd.read_csv('data/Sub1/28062021.CSV', names=Utils.header_names)
+    main_playmidi(pd.DataFrame(csvdata[10:400]))
