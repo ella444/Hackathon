@@ -1,5 +1,9 @@
 # Hackathon
 
+<img src="gui.png"
+     alt="gui window"
+     style="float: left; margin-right: 10px;" />
+
 ## The research:
 The research this project was created for is taking place in Dr Jason Friedman's Lab. 
 The aim of this research is to determine whether musical practice on the piano helps to improve motor symptoms in PD patients. 
