@@ -44,16 +44,11 @@ def gui_window():
         [sg.Text('', size=(20, 20), key='stats')],
     ]
 
-    frame4 = [
-        [sg.Button('Play', key='play', disabled=True, enable_events=True),
-         sg.Button('Export', key='export', enable_events=True, disabled=True), sg.Button('Exit')]
-    ]
-
     layout = [
         [sg.Frame('Select Session:', frame1, title_color='green')],
-        [sg.Frame('Stats:', frame3, title_color='black'), sg.Frame('', frame2, title_color='black')],
-        [sg.Frame('', frame4, title_color='black')]
-    ]
+        [sg.Frame('', frame2, title_color='black'), sg.Frame('Stats:', frame3, title_color='black')],
+        [sg.Button('Play', key='play', disabled=True, enable_events=True), sg.Button('Export', key='export', enable_events=True, disabled=True), sg.Button('Exit')],
+             ]
 
     window = sg.Window('Piano Visualization Gui - © Ella, Rotem, Goni, Hackthon 2021', layout, finalize=True,
                        element_justification='center', font='Helvetica 18')
