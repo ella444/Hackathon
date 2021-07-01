@@ -99,6 +99,10 @@ class QDG():
 
 
     def get_stats(self):
+        '''
+        get all stats from current selected dataframe
+        :return: dict of statistics
+        '''
         stats = {}
         first, last = self.midi_sample.datetime.iloc[[0, -1]]
         diff = last - first
@@ -124,6 +128,10 @@ class QDG():
         return stats
 
     def to_string(self):
+        '''
+        convert statistics dict to string
+        :return: string of stats
+        '''
         stats = self.get_stats()
         stat_str = ''
         for stat_name, stats in stats.items():

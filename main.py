@@ -13,6 +13,10 @@ user_args = {}
 midi_exe = 'midi_temp.py'
 
 def run_gui():
+    '''
+    main loop - handling all GUI events and behavior
+    :return:
+    '''
     window, ax, canvas = gui_window()
     i = 0
     while True:  # Event Loop
@@ -47,6 +51,7 @@ def run_gui():
             user_args['chosen_session'] = chosen_session
             draw_graph(canvas, ax, chosen_session)
             window.find_element("play").update(disabled=False)
+            window.find_element("export").update(disabled=False)
             # get_stats for df
             stats = QDG(chosen_session)
             window.find_element("stats").update(stats.to_string())
