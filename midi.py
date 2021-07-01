@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pygame
 import pandas as pd
 import numpy as np
@@ -15,8 +17,8 @@ def main_playmidi(csv_midi: pd.DataFrame):
     buffer = 1024   # number of samples
     pygame.mixer.init(freq, bitsize, channels, buffer)
 
-    # volume (0 to 1.0)
-    pygame.mixer.music.set_volume(0.8)
+
+    pygame.mixer.music.set_volume(0.4)
 
     # listen for interruptions
     try:
@@ -33,10 +35,10 @@ def main_playmidi(csv_midi: pd.DataFrame):
 
 def csv_to_midi(csvdata):
 
-    csvdata, headers = Utils.df_convert_time(csvdata)
-    csvdata['timestamp'] = csvdata[['datetime']].apply(lambda x: x[0].timestamp(), axis=1)
+    csvdata, _ = Utils.df_convert_time(csvdata)
+    csvdata['timestamp'] = csvdata.datetime.apply(lambda x: datetime.timestamp(x))
 
-    notes_data = pd.DataFrame(np.zeros(shape=[96,3]), index=[np.arange(1,97)], columns=['starttime','duration','velocity'])
+    notes_data = pd.DataFrame(np.zeros(shape=[96, 3]), index=np.arange(1, 97), columns=['starttime', 'duration', 'velocity'])
 
     track = 0
     channel = 0
@@ -46,7 +48,7 @@ def csv_to_midi(csvdata):
     mymidi = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created
     # automatically)
     mymidi.addTempo(track, time, tempo)
-
+    nullify = pd.DataFrame(np.zeros(shape=[1, 3]))
     startsong = csvdata['timestamp'][0]-0.001
 
     for index, row in csvdata.iterrows():
@@ -58,14 +60,39 @@ def csv_to_midi(csvdata):
         elif row['action'] == 2:
             if int(notes_data.loc[note,'starttime'] != 0):
                 notes_data.loc[note,'duration'] = row['timestamp']-startsong-notes_data.loc[note,'starttime']
-                volume = int(notes_data.loc[note,'velocity'])
-                starttime = float(notes_data.loc[note,'starttime'])
-                duration = float(notes_data.loc[note,'duration'])
+                volume = (notes_data.loc[note,'velocity'])
+                starttime = (notes_data.loc[note,'starttime'])
+                duration = (notes_data.loc[note,'duration'])
                 mymidi.addNote(track, channel, note, starttime, duration, volume)
                 notes_data.loc[note,:] = np.zeros(shape=(1,3))
-    
-    return mymidi
+                notes_data[note] = nullify
+
+    with open("output.mid", 'wb') as outf:
+        mymidi.writeFile(outf)
+    return "output.mid"
 ''''''
+# =======
+#     startsong = csvdata['timestamp'][0]
+#     nullify = pd.DataFrame(np.zeros(shape=[1, 3]))
+#
+#     for index, row in csvdata.iterrows():
+#         note = row['note']
+#         if row['action'] == 1 and notes_duration.iloc[note, 0] == 0:
+#             notes_duration[note, 'starttime'] = row['timestamp']-startsong
+#             notes_duration[note, 'velocity'] = row['velocity']
+#         elif row['action'] == 2 and notes_duration.iloc[note, 0] != 0:
+#             notes_duration[note,'duration'] = row['timestamp']-startsong-notes_duration[note, 'starttime']
+#             volume = notes_duration[note,'velocity']
+#             starttime = notes_duration[note, 'starttime']
+#             duration = notes_duration[note, 'duration']
+#             mymidi.addNote(track, channel, note, starttime, duration, volume)
+#             notes_duration[note] = nullify
+#
+#     with open("output.mid", 'wb') as outf:
+#         mymidi.writeFile(outf)
+#     return "output.mid"
+#
+# >>>>>>> Stashed changes
 
 def play_music(midi_file):
     clock = pygame.time.Clock()
@@ -79,3 +106,7 @@ def play_music(midi_file):
     while pygame.mixer.music.get_busy():
         # check if playback has finished
         clock.tick(30)
+
+if __name__ == '__main__':
+    csvdata = pd.read_csv('data/Sub1/28062021.CSV', names=Utils.header_names)
+    main_playmidi(pd.DataFrame(csvdata[10:400]))

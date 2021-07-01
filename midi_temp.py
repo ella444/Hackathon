@@ -86,4 +86,5 @@ def play_music(midi_file):
         clock.tick(30)
 
 
-play_music('FishPolka.mid')
+play_music('output.mid')
+# play_music('FishPolka.mid')

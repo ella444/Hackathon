@@ -15,7 +15,6 @@ def run_gui():
     window, ax, canvas = gui_window()
     i = 0
     while True:  # Event Loop
-        # sg.TimerStart()
         event, values = window.Read(timeout=30)
 
         if event is None or event == 'Exit':
@@ -56,7 +55,10 @@ def run_gui():
                 user_args['midi_pay_pid'].kill()
                 window.find_element("play").update('Play')
             else:
-                user_args['midi_pay_pid'] = subprocess.Popen(f'python {midi_exe}'.split())
+                try:
+                    user_args['midi_pay_pid'] = subprocess.Popen(f'python {midi_exe}'.split())
+                except:
+                    user_args['midi_pay_pid'] = subprocess.Popen(f'python3 {midi_exe}'.split())
                 window.find_element("play").update('Stop')
 
         if zoom_args.get('zoom_event'):
@@ -65,7 +67,6 @@ def run_gui():
             stats = QDG(pd.DataFrame(user_args['chosen_session'][max(0, xmin):min(xmax, user_args['chosen_session'].shape[0])]))
             window.find_element("stats").update(stats.to_string())
 
-        # sg.TimerStop()
     window.Close()
 
 

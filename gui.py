@@ -44,7 +44,7 @@ def gui_window():
     layout = [
         [sg.Frame('Select Session:', frame1, title_color='green')],
         [sg.Frame('', frame2, title_color='black'), sg.Frame('Stats:', frame3, title_color='black')],
-        [sg.Button('Play', key='play', disabled=False, enable_events=True), sg.Button('Exit')],
+        [sg.Button('Play', key='play', disabled=True, enable_events=True), sg.Button('Exit')],
              ]
 
     window = sg.Window('Demo Application - Embedding Matplotlib In PySimpleGUI', layout, finalize=True,

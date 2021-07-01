@@ -6,7 +6,7 @@ from utils import Utils
 
 class QDG():
     def __init__(self, midi_sample: pd.DataFrame):
-        '''
+        """
         Quantitative Digitography class.
         contains three methods to extract statistics from a given piano session.
         midi_sample: DataFrame containing midi events with the following order -
@@ -16,13 +16,13 @@ class QDG():
                     col 4 - ignore
                     col 5 - key number
                     col 6 - press/release velocity
-        '''
+        """
         assert isinstance(midi_sample, pd.DataFrame)
 
         self.midi_sample, self.header_names = Utils.df_convert_time(midi_sample)
 
     def extract_note_duration(self):
-        '''
+        """
         function that calculates note duration defined as time difference between consecutive press and release events of the same key.
         note: if press event is not followed by release event, press event is ignored.
         return: note duration - dictionary with the following keys:
@@ -30,7 +30,7 @@ class QDG():
                     mean - average note duration for a given segment.
                     std - standard deviation of note duration in a given segment.
                     CV - coefficient of variance as defined in the QDG paper.
-        '''
+        """
         note_duration = {'total': []}
         for index, row in self.midi_sample.iterrows():
             if getattr(row, self.header_names[2]) != 1:
@@ -45,10 +45,10 @@ class QDG():
                 except IndexError:
                     release_time = None
                     break
-                next_row_event = getattr(next_row,self.header_names[2])
-                next_row_key = getattr(next_row,self.header_names[4])
+                next_row_event = getattr(next_row, self.header_names[2])
+                next_row_key = getattr(next_row, self.header_names[4])
                 if next_row_event == 2 and next_row_key == row_key:
-                    release_time = getattr(next_row,self.header_names[6])
+                    release_time = getattr(next_row, self.header_names[6])
                     break
             if release_time is None:
                 print("couldn't locate corresponding release event...\nignoring press event")
@@ -100,6 +100,9 @@ class QDG():
 
     def get_stats(self):
         stats = {}
+        first, last = self.midi_sample.datetime.iloc[[0, -1]]
+        diff = last - first
+        stats['session_duration'] = round(diff.total_seconds() / 60)
         note_duration = self.extract_note_duration()
         stats['note duration'] = {}
         for name, value in note_duration.items():
@@ -124,9 +127,13 @@ class QDG():
         stats = self.get_stats()
         stat_str = ''
         for stat_name, stats in stats.items():
-            stat_str += f'{stat_name}\n'
-            for stat, val in stats.items():
-                stat_str += f'\t{stat}: {val:.3f}\n'
+            if stat_name == 'session_duration':
+                stat_str += f'session duration: {stats} (min)\n'
+                continue
+            else:
+                stat_str += f'{stat_name}\n'
+                for stat, val in stats.items():
+                    stat_str += f'\t{stat}: {val:.3f}\n'
         return stat_str
 
 if __name__=='__main__':
